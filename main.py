@@ -174,7 +174,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 new_points = []
                 for value in point_values:
                     try:
-                        point = int(value)
+                        point = float(value)
                         if 0 <= point <= 100:
                             new_points.append(point)
                         else:
@@ -200,7 +200,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         if self.serial_thread and self.serial_thread.is_running:
             data_to_send = "FS send points:" + ",".join(map(str, self.points)) + "\n"  # 格式化数据
             response = self.serial_thread.send_data(data_to_send)  # 发送数据并等待响应
-
+            print(f"发送数据: {data_to_send}")  # 打印发送的数据
             if response == "data send success":
                 QtWidgets.QMessageBox.information(self, "成功", "数据写入成功！")
             else:
@@ -271,7 +271,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         
         try:
             # 读取更新后的值
-            value = int(item.text())
+            value = float(item.text())
             # 检查输入的值是否在 0 到 100 之间
             if 0 <= value <= 100:
                 # 更新 points 列表

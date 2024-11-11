@@ -130,6 +130,7 @@ class SerialDebugger:
                     self.serial_port.write(data_to_send.encode('utf-8'))
                     self.recv_text.insert(tk.END,f"发送: {data_to_send}\n")
                     self.recv_text.see(tk.END)
+                    
     def add_point(self):
         if len(self.points) < 5:
             x = float(simpledialog.askstring("输入X坐标", "请输入X坐标:"))
