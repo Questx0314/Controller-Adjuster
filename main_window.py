@@ -15,6 +15,8 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(960, 500)
+
+
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.receiveDataButton = QtWidgets.QPushButton(self.centralwidget)
@@ -24,11 +26,14 @@ class Ui_MainWindow(object):
         self.sendDataButton.setGeometry(QtCore.QRect(70, 200, 75, 30))
         self.sendDataButton.setObjectName("pushButton_2")
         self.connectRadioButton = QtWidgets.QRadioButton(self.centralwidget)
-        self.connectRadioButton.setGeometry(QtCore.QRect(260, 110, 90, 16))
+        self.connectRadioButton.setGeometry(QtCore.QRect(260, 160, 90, 16))
         self.connectRadioButton.setObjectName("radioButton")
         self.connectButton = QtWidgets.QPushButton(self.centralwidget)
         self.connectButton.setGeometry(QtCore.QRect(250, 60, 75, 30))
         self.connectButton.setObjectName("pushButton_3")
+        self.disconnectButton = QtWidgets.QPushButton(self.centralwidget)
+        self.disconnectButton.setGeometry(QtCore.QRect(250,110,75,30))
+        self.disconnectButton.setObjectName("pushButton_4")
         self.comboBox = QtWidgets.QComboBox(self.centralwidget)
         self.comboBox.setGeometry(QtCore.QRect(70, 60, 150, 30))
         self.comboBox.setObjectName("comboBox")
@@ -63,3 +68,4 @@ class Ui_MainWindow(object):
         self.connectRadioButton.setText(_translate("MainWindow", "未连接"))
         self.connectButton.setText(_translate("MainWindow", "连接"))
         self.label.setText(_translate("MainWindow", "选择串口"))
+        self.disconnectButton.setText(_translate("MainWindow","断开"))

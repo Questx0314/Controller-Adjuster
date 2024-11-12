@@ -1,8 +1,0 @@
-{
-    "files.associations": {
-        "oled.h": "c",
-        "usb_device.h": "c",
-        "main.h": "c",
-        "gpio.h": "c"
-    }
-}

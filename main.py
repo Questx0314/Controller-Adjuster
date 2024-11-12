@@ -93,6 +93,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.sendDataButton.clicked.connect(self.send_data_to_serial) # 发送消息按钮点击
         self.comboBox.currentIndexChanged.connect(self.on_combobox_change) # combobox内容控制
         self.receiveDataButton.clicked.connect(self.request_data_from_serial) # 点击读取数据
+        self.disconnectButton.clicked.connect(self.disconnect) # 点击断开按钮
 
         # 连接表格项更改信号以更新图表
         self.tableWidget.itemChanged.connect(self.update_point_from_table)
@@ -158,6 +159,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.set_radioButton_state(1)
             self.set_button_state(False)
 
+    def disconnect(self):
+        "点击断开按钮"
+        self.set_radioButton_state(0)
+        self.set_button_state(False)
+        self.comboBox.setEnabled(True)
 
     def request_data_from_serial(self):
         """发送读取数据的请求"""
