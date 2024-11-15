@@ -38,9 +38,9 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-#define FLASH_ADDR 0x080E0000  // Flash 存储的起始地址
+#define FLASH_ADDR 0x080E0000  // Flash 存储的起始地�?
 #define MAX_TX_LEN 200
-#define NUM_POINTS 10  // 5 个点的 X 和 Y 坐标，共 10 个数据
+#define NUM_POINTS 10  // 5 个点�? X �? Y 坐标，共 10 个数�?
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -67,7 +67,7 @@ void SendResponse(char* response)
     uint8_t buffer[MAX_TX_LEN];
     uint16_t len = snprintf((char*)buffer, sizeof(buffer), "%s\r\n", response);
     
-    CDC_Transmit_FS(buffer, len);  // 通过 USB 发送消息
+    CDC_Transmit_HS(buffer, len);  // 通过 USB 发�?�消�?
 }
 
 void SendPoints()
@@ -75,23 +75,23 @@ void SendPoints()
     char buffer[MAX_TX_LEN];
     sprintf(buffer, "Controller send points:");
     
-    // 读取存储�? pointsData 中的点数据并发�??
+    // 读取存储�?? pointsData 中的点数据并发�??
     for (int i = 0; i < 5; i++)
     {
         sprintf(buffer + strlen(buffer), "%f,%f", pointsData.points[i * 2], pointsData.points[i * 2 + 1]);
         if (i < 4)
-            strcat(buffer, ",");  // 添加逗号分隔�?
+            strcat(buffer, ",");  // 添加逗号分隔�??
     }
     strcat(buffer, "\r\n");
 
-    CDC_Transmit_FS((uint8_t*)buffer, strlen(buffer));  // 发�?�点数据
+    CDC_Transmit_HS((uint8_t*)buffer, strlen(buffer));  // 发�?�点数据
 }
 
 void WritePointsToFlash(PointsData* pointsData)
 {
     HAL_FLASH_Unlock();  // 解锁 Flash 写入
 
-    // 将每个坐标点�? x �? y 写入 Flash
+    // 将每个坐标点�?? x �?? y 写入 Flash
     for (int i = 0; i < 5; i++)
     {
         // 写入点的 x 坐标
@@ -121,31 +121,31 @@ void UpdatePoints(uint8_t* data)
   int index = 1;
 
   // 遍历并解析点数据
-  while (token != NULL && index < 10)  // 最多解析 10 个数据
+  while (token != NULL && index < 10)  // �?多解�? 10 个数�?
   {
-      // 转换为浮动点数
+      // 转换为浮动点�?
       float value = atof(token);
 
-      // 验证每个坐标值是否在合理范围内 (0-100)
+      // 验证每个坐标值是否在合理范围�? (0-100)
       if (value < 0.0f || value > 100.0f) 
       {
           SendResponse("Invalid data");  // 如果有无效的点，返回错误消息
           return;
       }
 
-      pointsData.points[index] = value;  // 存储有效的坐标
+      pointsData.points[index] = value;  // 存储有效的坐�?
       token = strtok(NULL, ",");
       index++;
   }
 
-  // 确保数据完整：检查是否恰好有 10 个坐标数据
+  // 确保数据完整：检查是否恰好有 10 个坐标数�?
   if (index != 10)
   {
-      SendResponse("Invalid number of points");  // 如果点数不等于 10，返回错误消息
+      SendResponse("Invalid number of points");  // 如果点数不等�? 10，返回错误消�?
       return;
   }
 
-  // 将更新后的点数据保存到 Flash
+  // 将更新后的点数据保存�? Flash
   WritePointsToFlash(&pointsData);
 
   // 回复数据接收成功
@@ -161,7 +161,7 @@ void ProcessReceivedData(uint8_t* data, uint32_t len)
     }
     else if (strstr((char*)data, "FS request points") == (char*)data)
     {
-        SendPoints();  // 回复当前点数据
+        SendPoints();  // 回复当前点数�?
     }
     else if (strstr((char*)data, "FS send points:") == (char*)data)
     {
@@ -181,17 +181,17 @@ void USB_Init(void)
   GPIO_InitTypeDef GPIO_InitStruct = {0};
 
   /* GPIO Ports Clock Enable */
-  __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_11|GPIO_PIN_12, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14|GPIO_PIN_15, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : PA8 */
-  GPIO_InitStruct.Pin = GPIO_PIN_11|GPIO_PIN_12;
+  GPIO_InitStruct.Pin = GPIO_PIN_14|GPIO_PIN_15;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   HAL_Delay(10);
 }
@@ -227,7 +227,7 @@ int main(void)
   MX_GPIO_Init();
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
-  char msg[] = "Hello World!111";
+  // char msg[] = "Hello World!111";
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -236,6 +236,7 @@ int main(void)
   {
 		// SendResponse(msg);
     // CDC_Transmit_FS(msg,sizeof(msg));
+    // CDC_Transmit_HS(msg,sizeof(msg));
     // HAL_Delay(1000);
     /* USER CODE END WHILE */
 
