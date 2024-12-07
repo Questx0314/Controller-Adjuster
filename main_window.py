@@ -9,7 +9,8 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-
+import os 
+import sys
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -48,6 +49,13 @@ class Ui_MainWindow(object):
         self.tableWidget.setObjectName("tableWidget")
         self.tableWidget.setColumnCount(0)
         self.tableWidget.setRowCount(0)
+        self.instructionsLabel = QtWidgets.QLabel(self.centralwidget)
+        self.instructionsLabel.setGeometry(QtCore.QRect(70, 450, 100, 30))
+        self.instructionsLabel.setObjectName("instructionsLabel")
+        self.instructionsLabel.setText("操作说明")
+        self.instructionsLabel.setStyleSheet("color: blue; text-decoration: underline;")
+        self.instructionsLabel.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.instructionsLabel.mousePressEvent = self.show_instructions
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 960, 23))
@@ -69,3 +77,35 @@ class Ui_MainWindow(object):
         self.connectButton.setText(_translate("MainWindow", "连接"))
         self.label.setText(_translate("MainWindow", "选择串口"))
         self.disconnectButton.setText(_translate("MainWindow","断开"))
+
+
+    # 获取图片的路径
+    def resource_path(self,relative_path):
+        try:
+            # 打包后的路径
+            base_path = sys._MEIPASS
+        except Exception:
+            # 开发时的路径
+            base_path = os.path.abspath(".")
+        return os.path.join(base_path, relative_path)
+
+    def show_instructions(self, event):
+        """显示操作说明图片"""
+        img_path = self.resource_path("instruction.png")  # 图片路径
+        pixmap = QtGui.QPixmap(img_path)  # 加载图片
+        if pixmap.isNull():  # 检查图片是否加载成功
+            QtWidgets.QMessageBox.warning(self, "错误", "无法加载操作说明图片！")
+            return
+
+        # 创建一个新的对话框来显示图片
+        img_dialog = QtWidgets.QDialog(self)
+        img_dialog.setWindowTitle("操作说明")
+        img_dialog.setWindowFlag(QtCore.Qt.WindowStaysOnTopHint)  # 确保窗口在最上层
+
+        img_label = QtWidgets.QLabel(img_dialog)  # 在对话框中创建标签
+        img_label.setPixmap(pixmap)  # 设置标签的图片
+        img_label.resize(pixmap.size())  # 调整标签大小以适应图片
+
+        # 设置对话框的大小
+        img_dialog.resize(pixmap.size())
+        img_dialog.exec_()  # 显示对话框

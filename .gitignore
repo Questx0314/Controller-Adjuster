@@ -1,0 +1,9 @@
+
+/build/main
+/__pycache__
+*.spec
+Pipfile
+*.lock
+/__pycache__
+pyinstaller
+/__pycache__

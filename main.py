@@ -94,11 +94,23 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.comboBox.currentIndexChanged.connect(self.on_combobox_change) # combobox内容控制
         self.receiveDataButton.clicked.connect(self.request_data_from_serial) # 点击读取数据
         self.disconnectButton.clicked.connect(self.disconnect) # 点击断开按钮
+        # self.instructionsLabel.clicked.connect(self.show_instructions)#显示操作说明图片
 
         # 连接表格项更改信号以更新图表
         self.tableWidget.itemChanged.connect(self.update_point_from_table)
 
         self.serial_thread = None
+
+    # def show_instructions(self, event):
+    #     """显示操作说明图片"""
+    #     img_path = "操作说明.png"  # 图片路径
+    #     pixmap = QtGui.QPixmap(img_path)  # 加载图片
+    #     img_label = QtWidgets.QLabel()  # 创建新的标签用于显示图片
+    #     img_label.setPixmap(pixmap)  # 设置标签的图片
+    #     img_label.setWindowTitle("操作说明")  # 设置窗口标题
+    #     img_label.setWindowFlag(QtCore.Qt.WindowStaysOnTopHint)  # 确保窗口在最上层
+    #     img_label.resize(pixmap.size())  # 调整标签大小以适应图片
+    #     img_label.show()  # 显示标签
 
     def on_combobox_change(self):
         if self.comboBox.currentText() == "刷新":
