@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "usbd_cdc_if.h": "c",
-        "usb_device.h": "c"
+        "usb_device.h": "c",
+        "main.h": "c"
     }
 }

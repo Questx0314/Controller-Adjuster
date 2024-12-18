@@ -38,9 +38,10 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-#define FLASH_ADDR 0x080E0000  // Flash 存储的起始地�?
-#define MAX_TX_LEN 200
-#define NUM_POINTS 10  // 5 个点�? X �? Y 坐标，共 10 个数�?
+#define FLASH_ADDR ((uint32_t)0x080E0000)  // Flash 存储的起始地址?
+#define MAX_TX_LEN 256
+#define NUM_POINTS 10
+#define FLASH_SECTOR_SIZE ((uint32_t)0x4000)  // 16 KB
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -50,109 +51,202 @@ typedef struct
 {
     float points[NUM_POINTS];  // 5个点的x,y坐标
 } PointsData;
-
 PointsData pointsData;
+
+typedef struct 
+{
+  HAL_StatusTypeDef hal_status;
+  char process[32];
+  char detail[64];
+}ErrorRecord;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+// 获取 Flash 扇区编号
+uint32_t GetSector(uint32_t address)
+{
+    if (address < 0x08004000) return FLASH_SECTOR_0;
+    if (address < 0x08008000) return FLASH_SECTOR_1;
+    if (address < 0x0800C000) return FLASH_SECTOR_2;
+    if (address < 0x08010000) return FLASH_SECTOR_3;
+    if (address < 0x08020000) return FLASH_SECTOR_4;
+    if (address < 0x08040000) return FLASH_SECTOR_5;
+    if (address < 0x08060000) return FLASH_SECTOR_6;
+    if (address < 0x08080000) return FLASH_SECTOR_7;
+    if (address < 0x080A0000) return FLASH_SECTOR_8;
+    if (address < 0x080C0000) return FLASH_SECTOR_9;
+    if (address < 0x080E0000) return FLASH_SECTOR_10;
+    if (address < 0x08100000) return FLASH_SECTOR_11;
+    return FLASH_SECTOR_11;  // 默认返回最后一个扇区
+}
+
+void SendError(ErrorRecord* errorRecord)
+{
+    uint8_t buffer[MAX_TX_LEN];
+
+    // 格式化错误信息，包括出错过程、HAL 状态和详细描述
+    uint16_t len = snprintf((char*)buffer, sizeof(buffer), 
+                            "Error in process: %s\r\nHAL_Status: %d\r\nDetail: %s\r\n", 
+                            errorRecord->process, 
+                            errorRecord->hal_status, 
+                            errorRecord->detail);
+
+    // 通过 USB 发送错误信息
+    CDC_Transmit_HS(buffer, len);
+}
+
+void ReportError(HAL_StatusTypeDef hal_status, const char* process, char* detail)
+{
+    ErrorRecord errorRecord;
+    errorRecord.hal_status = hal_status;
+
+    // 拷贝 process
+    strncpy(errorRecord.process, process, sizeof(errorRecord.process));
+    errorRecord.process[sizeof(errorRecord.process) - 1] = '\0';  // 确保字符串以 '\0' 结束
+
+    // 拷贝 detail
+    strncpy(errorRecord.detail, detail, sizeof(errorRecord.detail));
+    errorRecord.detail[sizeof(errorRecord.detail) - 1] = '\0';  // 确保字符串以 '\0' 结束
+
+    // 调用 SendError
+    SendError(&errorRecord);
+}
 
 void SendResponse(char* response)
 {
-    uint8_t buffer[MAX_TX_LEN];
-    uint16_t len = snprintf((char*)buffer, sizeof(buffer), "%s\r\n", response);
-    
-    CDC_Transmit_HS(buffer, len);  // 通过 USB 发�?�消�?
-}
-
-void SendPoints()
-{
-    char buffer[MAX_TX_LEN];
-    sprintf(buffer, "Controller send points:");
-    
-    // 读取存储�?? pointsData 中的点数据并发�??
-    for (int i = 0; i < 5; i++)
-    {
-        sprintf(buffer + strlen(buffer), "%f,%f", pointsData.points[i * 2], pointsData.points[i * 2 + 1]);
-        if (i < 4)
-            strcat(buffer, ",");  // 添加逗号分隔�??
-    }
-    strcat(buffer, "\r\n");
-
-    CDC_Transmit_HS((uint8_t*)buffer, strlen(buffer));  // 发�?�点数据
-}
-
-void WritePointsToFlash(PointsData* pointsData)
-{
-    HAL_FLASH_Unlock();  // 解锁 Flash 写入
-
-    // 将每个坐标点�?? x �?? y 写入 Flash
-    for (int i = 0; i < 5; i++)
-    {
-        // 写入点的 x 坐标
-        HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, FLASH_ADDR + i * 2 * sizeof(float), pointsData->points[i * 2]);
-        // 写入点的 y 坐标
-        HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, FLASH_ADDR + (i * 2 + 1) * sizeof(float), pointsData->points[i * 2 + 1]);
-    }
-
-    HAL_FLASH_Lock();  // 锁定 Flash
+  uint8_t buffer[MAX_TX_LEN];
+  uint16_t len = snprintf((char*)buffer, sizeof(buffer), "%s\r\n", response);
+  
+  CDC_Transmit_HS(buffer, len);  // 通过 USB 发送消息
 }
 
 void ReadPointsFromFlash(PointsData* pointsData)
 {
-    for (int i = 0; i < 5; i++)
-    {
-        // 读取点的 x 坐标
-        pointsData->points[i * 2] = *(float*)(FLASH_ADDR + i * 2 * sizeof(float));
-        // 读取点的 y 坐标
-        pointsData->points[i * 2 + 1] = *(float*)(FLASH_ADDR + (i * 2 + 1) * sizeof(float));
+  for (int i = 0; i < NUM_POINTS; i++)
+  {
+    float value = *(float*)(FLASH_ADDR + i * sizeof(float));
+    pointsData->points[i] = value;
+  }
+}
+
+HAL_StatusTypeDef EraseFlash(uint32_t startAddress, uint32_t endAddress)
+{
+    HAL_FLASH_Unlock();
+
+    uint32_t sectorStart = GetSector(startAddress);
+    uint32_t sectorEnd = GetSector(endAddress);
+
+    FLASH_EraseInitTypeDef eraseInitStruct;
+    uint32_t sectorError;
+
+    eraseInitStruct.TypeErase = FLASH_TYPEERASE_SECTORS;
+    eraseInitStruct.VoltageRange = FLASH_VOLTAGE_RANGE_3;
+
+    for (uint32_t sector = sectorStart; sector <= sectorEnd; sector++) {
+        eraseInitStruct.Sector = sector;
+        eraseInitStruct.NbSectors = 1;
+
+        if (HAL_FLASHEx_Erase(&eraseInitStruct, &sectorError) != HAL_OK) {
+            char detail[64];
+            snprintf(detail, sizeof(detail), "Sector: %lu", sector);
+            ReportError(HAL_FLASH_GetError(), "EraseFlash", detail);
+            HAL_FLASH_Lock();
+            return HAL_ERROR;
+        }
     }
+    HAL_FLASH_Lock();
+    return HAL_OK;
+}
+
+void WritePointsToFlash(PointsData* pointsData)
+{
+    if (EraseFlash(FLASH_ADDR, FLASH_ADDR + NUM_POINTS * sizeof(float) - 1) != HAL_OK)
+    {
+      return;
+    }
+    HAL_FLASH_Unlock();
+    for (int i = 0; i < NUM_POINTS; i++) {
+        float value = pointsData->points[i];
+        uint32_t dataToWrite;
+        memcpy(&dataToWrite, &value, sizeof(float));
+
+        if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, FLASH_ADDR + i * sizeof(float), dataToWrite) != HAL_OK) {
+          char detail[64];
+          snprintf(detail, sizeof(detail), "Index: %d, Value: %f", i, value);
+          ReportError(HAL_FLASH_GetError(), "WritePointsToFlash", detail);
+          HAL_FLASH_Lock();
+          return;
+        }
+    }
+    HAL_FLASH_Lock();
+    SendResponse("data send success");
+    return;
+}
+
+void SendPoints()
+{
+  ReadPointsFromFlash(&pointsData);
+  char buffer[MAX_TX_LEN];
+  int len = snprintf(buffer, sizeof(buffer), "Controller send points:");
+
+    // 读取存储在 pointsData 中的点数据并发送
+    for (int i = 0; i < NUM_POINTS; i++)
+    {
+        len += snprintf(buffer + len, sizeof(buffer) - len, "%f", pointsData.points[i]);
+        if (i < NUM_POINTS - 1) {
+            len += snprintf(buffer + len, sizeof(buffer) - len, ",");  // 添加逗号分隔符
+        }
+    }
+    SendResponse(buffer);
 }
 
 // 解析接收到的点数据并更新
 void UpdatePoints(uint8_t* data)
 {
-  char* token = strtok((char*)data, ",");
-  int index = 1;
+    char* token = strtok((char*)data, ",");
+    int index = 0;
 
-  // 遍历并解析点数据
-  while (token != NULL && index < 10)  // �?多解�? 10 个数�?
-  {
-      // 转换为浮动点�?
-      float value = atof(token);
+    // 遍历解析点数据
+    while (token != NULL && index < NUM_POINTS)
+    {
+        float value = atof(token);
+        // 验证数据范围
+        if (value < 0.0f || value > 100.0f) 
+        {
+            char detail[64];
+            snprintf(detail, sizeof(detail), "Invalid value: %f at index: %d", value, index);
+            ReportError(HAL_ERROR, "UpdatePoints", detail);
+            return;
+        }
+        // 存储有效的值到 pointsData
+        pointsData.points[index] = value;  // 将解析的值存储到 pointsData 中
+        token = strtok(NULL, ",");
+        index++;
+    }
 
-      // 验证每个坐标值是否在合理范围�? (0-100)
-      if (value < 0.0f || value > 100.0f) 
-      {
-          SendResponse("Invalid data");  // 如果有无效的点，返回错误消息
-          return;
-      }
+    // 确保数据完整
+    if (index != NUM_POINTS)
+    {
+        char detail[64];
+        snprintf(detail, sizeof(detail), "Expected %d points, got %d", NUM_POINTS, index);
+        ReportError(HAL_ERROR, "UpdatePoints", detail);
+        return;
+    }
 
-      pointsData.points[index] = value;  // 存储有效的坐�?
-      token = strtok(NULL, ",");
-      index++;
-  }
-
-  // 确保数据完整：检查是否恰好有 10 个坐标数�?
-  if (index != 10)
-  {
-      SendResponse("Invalid number of points");  // 如果点数不等�? 10，返回错误消�?
-      return;
-  }
-
-  // 将更新后的点数据保存�? Flash
-  WritePointsToFlash(&pointsData);
-
-  // 回复数据接收成功
-  SendResponse("data send success");
+    // 写入到 Flash
+    WritePointsToFlash(&pointsData);
 }
 
-// 处理接收到的数据
+
+// 处理接收的数据
 void ProcessReceivedData(uint8_t* data, uint32_t len)
 {
     if (strstr((char*)data, "FS connect") == (char*)data)
@@ -161,19 +255,18 @@ void ProcessReceivedData(uint8_t* data, uint32_t len)
     }
     else if (strstr((char*)data, "FS request points") == (char*)data)
     {
-        SendPoints();  // 回复当前点数�?
+        SendPoints();  // 回复当前点数量
     }
     else if (strstr((char*)data, "FS send points:") == (char*)data)
     {
         // 提取数字部分并更新点数据
-        UpdatePoints(data + 16);  // 跳过 "FS send points:" 部分
+        UpdatePoints(data + strlen("FS send points:"));  // 只传输FS send points：之后的部分
     }
     else
     {
         SendResponse("Unknown command");  // 回传未识别的命令
     }
 }
-
 
 // 在重启单片机之后不需要插拔usb也能正确识别
 void USB_Init(void)
@@ -227,20 +320,17 @@ int main(void)
   MX_GPIO_Init();
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
-  // char msg[] = "Hello World!111";
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-		// SendResponse(msg);
-    // CDC_Transmit_FS(msg,sizeof(msg));
-    // CDC_Transmit_HS(msg,sizeof(msg));
-    // HAL_Delay(1000);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+
+    // TestFlashReadWrite();  // 调用测试函数
   }
   /* USER CODE END 3 */
 }
@@ -291,6 +381,7 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+
 
 /* USER CODE END 4 */
 
