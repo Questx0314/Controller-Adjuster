@@ -1,13 +1,13 @@
 f405\usbd_ctlreq.o: ../Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_ctlreq.c
 f405\usbd_ctlreq.o: ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_ctlreq.h
 f405\usbd_ctlreq.o: ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_def.h
-f405\usbd_ctlreq.o: ../USB_DEVICE/Target/usbd_conf.h
+f405\usbd_ctlreq.o: ../Inc/usbd_conf.h
 f405\usbd_ctlreq.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
 f405\usbd_ctlreq.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
 f405\usbd_ctlreq.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
-f405\usbd_ctlreq.o: ../Core/Inc/main.h
+f405\usbd_ctlreq.o: ../Inc/main.h
 f405\usbd_ctlreq.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h
-f405\usbd_ctlreq.o: ../Core/Inc/stm32f4xx_hal_conf.h
+f405\usbd_ctlreq.o: ../Inc/stm32f4xx_hal_conf.h
 f405\usbd_ctlreq.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h
 f405\usbd_ctlreq.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_def.h
 f405\usbd_ctlreq.o: ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f4xx.h

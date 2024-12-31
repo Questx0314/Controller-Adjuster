@@ -1,5 +1,5 @@
-f405\usb_device.o: ../USB_DEVICE/App/usb_device.c
-f405\usb_device.o: ../USB_DEVICE/App/usb_device.h
+f405\usb_device.o: ../Src/usb_device.c
+f405\usb_device.o: ../Inc/usb_device.h
 f405\usb_device.o: ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f4xx.h
 f405\usb_device.o: ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f405xx.h
 f405\usb_device.o: ../Drivers/CMSIS/Include/core_cm4.h
@@ -10,7 +10,7 @@ f405\usb_device.o: ../Drivers/CMSIS/Include/cmsis_armcc.h
 f405\usb_device.o: ../Drivers/CMSIS/Include/mpu_armv7.h
 f405\usb_device.o: ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/system_stm32f4xx.h
 f405\usb_device.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h
-f405\usb_device.o: ../Core/Inc/stm32f4xx_hal_conf.h
+f405\usb_device.o: ../Inc/stm32f4xx_hal_conf.h
 f405\usb_device.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h
 f405\usb_device.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_def.h
 f405\usb_device.o: ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f4xx.h
@@ -32,15 +32,15 @@ f405\usb_device.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pcd.h
 f405\usb_device.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_usb.h
 f405\usb_device.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pcd_ex.h
 f405\usb_device.o: ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_def.h
-f405\usb_device.o: ../USB_DEVICE/Target/usbd_conf.h
+f405\usb_device.o: ../Inc/usbd_conf.h
 f405\usb_device.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
 f405\usb_device.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
 f405\usb_device.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
-f405\usb_device.o: ../Core/Inc/main.h
+f405\usb_device.o: ../Inc/main.h
 f405\usb_device.o: ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_core.h
 f405\usb_device.o: ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_ioreq.h
 f405\usb_device.o: ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_core.h
 f405\usb_device.o: ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_ctlreq.h
-f405\usb_device.o: ../USB_DEVICE/App/usbd_desc.h
+f405\usb_device.o: ../Inc/usbd_desc.h
 f405\usb_device.o: ../Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc/usbd_cdc.h
-f405\usb_device.o: ../USB_DEVICE/App/usbd_cdc_if.h
+f405\usb_device.o: ../Inc/usbd_cdc_if.h

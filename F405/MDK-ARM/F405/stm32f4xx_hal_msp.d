@@ -1,7 +1,7 @@
-f405\stm32f4xx_hal_msp.o: ../Core/Src/stm32f4xx_hal_msp.c
-f405\stm32f4xx_hal_msp.o: ../Core/Inc/main.h
+f405\stm32f4xx_hal_msp.o: ../Src/stm32f4xx_hal_msp.c
+f405\stm32f4xx_hal_msp.o: ../Inc/main.h
 f405\stm32f4xx_hal_msp.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h
-f405\stm32f4xx_hal_msp.o: ../Core/Inc/stm32f4xx_hal_conf.h
+f405\stm32f4xx_hal_msp.o: ../Inc/stm32f4xx_hal_conf.h
 f405\stm32f4xx_hal_msp.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h
 f405\stm32f4xx_hal_msp.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_def.h
 f405\stm32f4xx_hal_msp.o: ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f4xx.h

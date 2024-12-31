@@ -1,8 +1,8 @@
-f405\gpio.o: ../Core/Src/gpio.c
-f405\gpio.o: ../Core/Inc/gpio.h
-f405\gpio.o: ../Core/Inc/main.h
+f405\gpio.o: ../Src/gpio.c
+f405\gpio.o: ../Inc/gpio.h
+f405\gpio.o: ../Inc/main.h
 f405\gpio.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h
-f405\gpio.o: ../Core/Inc/stm32f4xx_hal_conf.h
+f405\gpio.o: ../Inc/stm32f4xx_hal_conf.h
 f405\gpio.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h
 f405\gpio.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_def.h
 f405\gpio.o: ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f4xx.h
