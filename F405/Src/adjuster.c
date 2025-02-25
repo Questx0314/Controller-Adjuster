@@ -8,6 +8,8 @@
 #define NUM_CURVES 4
 // 曲线控制点的数量
 #define NUM_POINTS 10
+// 手柄最大电流范围
+#define CURRENT_LIMIT 1050.0f
 
 #define MAX_STRING_LEN 6  // 确保最大字符串长度，包括 '\0'
 char type_group[NUM_CURVES][MAX_STRING_LEN] = {
@@ -155,7 +157,7 @@ void UpdatePoints(uint8_t* data,uint8_t curve_index)
     {
         float value = atof(token);
         // 验证数据范围
-        if (value < 0.0f || value > 100.0f) 
+        if (value < 0.0f || value > CURRENT_LIMIT) 
         {
             char detail[40];
             snprintf(detail, sizeof(detail), "Invalid value: %f at index: %d", value, point_index);

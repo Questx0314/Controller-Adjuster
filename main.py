@@ -13,10 +13,15 @@ type_name_mapping = {
     "ZBL2": "指拨轮2"
 }
 
+
+
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
+
+        # 添加调试模式开关
+        self.debug_mode = True  # 设置为 True 启用调试模式
 
         # 设置和串口之间的波特率
         self.baud_rate = 9600
@@ -31,10 +36,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # 设置 QGraphicsView 场景
         self.scene = QtWidgets.QGraphicsScene(self)
         self.graphicsView.setScene(self.scene)
+        self.current_limit = 1050
 
         # 显示点列表和初始化图表
         self.setup_table_widget()
-
 
         # 禁用按钮
         self.set_button_state(False)
@@ -50,8 +55,30 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.disconnectButton.clicked.connect(self.disconnect) # 点击断开按钮
         self.sendAllDataButton.clicked.connect(self.send_all_points_to_serial) # 点击全部发送
         self.receiveAllDataButton.clicked.connect(self.request_all_data_from_serial) # 点击全部读取
+        self.editAllButton.clicked.connect(self.edit_all_curves) # 点击编辑全部
+
         # 连接表格项更改信号以更新图表
         self.tableWidget.itemChanged.connect(self.update_point_from_table)
+         # 连接电流最大值变化事件
+        self.currentTypeComboBox.currentIndexChanged.connect(self.update_current_limits) 
+        self.saved_curves = {}  # 用于存储曲线数据
+
+    def update_current_limits(self):
+        """根据选择的最大电流更新表格限制和图像显示"""
+        current_type = self.currentTypeComboBox.currentText()
+        if current_type == "最大电流 1050mA":
+            self.current_limit = 1050
+        elif current_type == "最大电流 2000mA":
+            self.current_limit = 2000
+
+        # 更新表格的限制值
+        for row in range(self.tableWidget.rowCount()):
+            item = self.tableWidget.item(row, 1)  # 获取电流值列
+            if item:
+                value = float(item.text())
+                if value > self.current_limit:
+                    item.setText(str(self.current_limit))  # 限制电流值不超过最大值
+
 
     def on_serial_comboBox_change(self):
         if self.serial_comboBox.currentText() == "刷新":
@@ -86,18 +113,24 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.sendAllDataButton.setEnabled(state)
         self.receiveAllDataButton.setEnabled(state)
         self.curves_comboBox.setEnabled(state)
+        self.editAllButton.setEnabled(state)
+        self.tableWidget.setEnabled(state)
+        self.currentTypeComboBox.setEnabled(state)
 
     def set_radioButton_state(self,state=0):
         """控制radioButton的状态"""
         match state:
             case 0:#未连接状态
                 self.connectRadioButton.setChecked(False)
+                self.connectButton.setEnabled(True)
                 self.connectRadioButton.setText("未连接")
             case 1:#连接失败状态
                 self.connectRadioButton.setChecked(False)
+                self.connectButton.setEnabled(True)
                 self.connectRadioButton.setText("连接失败")
             case 2:#连接成功状态
                 self.connectRadioButton.setChecked(True)
+                self.connectButton.setEnabled(False)
                 self.connectRadioButton.setText("连接成功")
 
     def connect_to_serial_port(self):
@@ -115,8 +148,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             for type_name in type_group:
                 # 如果映射表中有对应的中文名称，就使用它，否则使用 name 作为中文名称
                 cname = type_name_mapping.get(type_name, type_name)
-                points_for_curve = [(0, 0), (25, 25), (50, 50), (75, 75), (100, 100)]
-                # 将每个曲线存储为字典，包含 name 和 points
+                points_for_curve = self.saved_curves.get(type_name, [(0, 0), (25, 250), (50, 500), (75, 750), (100, 1000)])  # 使用保存的数据
                 curve = {
                     "name": type_name,
                     "cname": cname,
@@ -135,9 +167,15 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def disconnect(self):
         """点击断开按钮"""
+        # 存储当前曲线的数据
+        self.save_curves_data()
         self.set_radioButton_state(0)
         self.set_button_state(False)
         self.serial_comboBox.setEnabled(True)
+
+    def save_curves_data(self):
+        """保存当前曲线的数据"""
+        self.saved_curves = {curve["name"]: curve["points"] for curve in self.curves}
 
     def send_data(self,data):
         """发送数据"""
@@ -148,7 +186,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         
         try:
             self.serial_port = serial.Serial(selected_port, baudrate=self.baud_rate, timeout=1)  # 1秒超时
-            print(f"打开串口: {selected_port}")
+            if self.debug_mode:
+                print(f"打开串口: {selected_port}")
 
             # 检查串口是否成功打开
             if not self.serial_port.is_open:
@@ -157,8 +196,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             
             # 尝试发送数据
             try:
+                if self.debug_mode:
+                    print(f"发送数据: {data}")  # 打印发送的数据
                 self.serial_port.write(data.encode())
-                print(f"发送数据: {data}")
             except serial.SerialTimeoutException:
                 QtWidgets.QMessageBox.warning(self, "错误", "串口写入超时")
                 self.serial_port.close()
@@ -170,7 +210,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             except Exception as e:
                 # 捕获其他未知错误
                 QtWidgets.QMessageBox.warning(self, "错误", f"发生未知错误: {str(e)}")
-                print(f"发生未知错误: {str(e)}")
                 return "未知错误"     
 
             # 等待回应
@@ -179,19 +218,19 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             # 关闭串口
             if self.serial_port.is_open:
                 self.serial_port.close()
-                print("关闭串口")
+                if self.debug_mode:
+                    print("关闭串口")
 
-            if response is None:
-                response = "没有回应"
-
+            if self.debug_mode and response is not None:
+                print(f"接收到回应: {response}")  # 打印接收到的回应
             return response 
+
         except serial.SerialException as e:
             QtWidgets.QMessageBox.warning(self, "错误", f"串口错误: {str(e)}")
             return "串口错误"
         except Exception as e:
             # 捕获其他未知错误
             QtWidgets.QMessageBox.warning(self, "错误", f"发生未知错误: {str(e)}")
-            print(f"发生未知错误: {str(e)}")
             return "未知错误"
         finally:
             # 确保串口关闭
@@ -212,9 +251,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             QtWidgets.QApplication.processEvents()  # 保持应用响应，等待接收数据
             if self.serial_port.in_waiting > 0:  # 检查是否有可用数据
                 response_data = self.serial_port.readline().decode('utf-8').strip()  # 读取一行数据并解码
+
                 if response_data:
                     self.response = response_data  # 存储收到的响应
-                    print(f"收到数据: {response_data}")
+                    if self.debug_mode:
+                        print(f"接收到数据: {response_data}")  # 打印接收到的数据
                     break
         # 停止计时器
         self.timer.stop()
@@ -254,25 +295,28 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             # 检查数据格式是否正确并更新 points
             valid_data = True
             new_points = []
-            for value in point_values:
+            for i in range(0, len(point_values), 2):  # 每两个值为一对坐标
                 try:
-                    point = float(value)
-                    if 0 <= point <= 100:
-                        new_points.append(point)
+                    x_value = float(point_values[i])  # x 坐标
+                    y_value = float(point_values[i + 1])  # y 坐标
+
+                    # 检查 x 和 y 坐标的范围
+                    if 0 <= x_value <= 100 and 0 <= y_value <= self.current_limit:
+                        new_points.append((x_value, y_value))
                     else:
                         valid_data = False
                         break
-                except ValueError:
+                except (ValueError, IndexError):
                     valid_data = False
                     break
 
-            if valid_data and len(new_points) == 10:  # 确保有 5 对坐标
+            if valid_data and len(new_points) == 5:  # 确保有 5 对坐标
                 # 获取当前选中的曲线的 cname
                 selected_curve = next((curve for curve in self.curves if curve["name"] == curve_name), None)
 
                 if selected_curve:
                     # 更新选中曲线的数据
-                    selected_curve["points"] = [(new_points[i], new_points[i+1]) for i in range(0, len(new_points), 2)]
+                    selected_curve["points"] = new_points
                     self.populate_table_widget()  # 更新表格
                     self.draw_plot()  # 重绘图形
                     return True
@@ -301,7 +345,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 QtWidgets.QMessageBox.information(self, "成功", "数据写入成功！")
             else:
                 QtWidgets.QMessageBox.warning(self, "失败", "数据写入失败！")
-                # self.connect_to_serial_port()
 
     def send_all_points_to_serial(self):
         """向选中的串口发送所有曲线的 points 数据"""
@@ -425,8 +468,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             try:
                 # 读取更新后的值
                 value = float(item.text())
-                # 检查输入的值是否在 0 到 100 之间
-                if 0 <= value <= 100:
+                # 检查输入的值是否在 0 到 最大电流值 之间
+                if 0 <= value <= self.current_limit:
                     # 更新 points 列表
                     if col == 0:  # 更新 x 坐标
                         selected_curve["points"][row] = (value, selected_curve["points"][row][1])
@@ -436,7 +479,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                     # 重新绘制图表
                     self.draw_plot()
                 else:
-                    QtWidgets.QMessageBox.warning(self, "输入错误", "坐标值必须在 0 到 100 之间")
+                    QtWidgets.QMessageBox.warning(self, "输入错误", f"坐标值必须在 0 到 {self.current_limit} 之间")
                     # 恢复到原值
                     self.populate_table_widget()
             except ValueError:
@@ -479,11 +522,29 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             ax.set_title(f"曲线：{selected_curve['cname']}")  # 使用 cname 作为标题
             ax.plot(x_values, y_values, marker='o')
             ax.set_xlabel("行程 (%)")  # x 轴标题
-            ax.set_ylabel("电流值 (%)")  # y 轴标题
+            ax.set_ylabel("电流值 (mA)")  # y 轴标题
             ax.set_xlim(0, 100)
-            ax.set_ylim(0, 100)
+            ax.set_ylim(0, self.current_limit)
 
             self.canvas.draw()
+
+    def edit_all_curves(self):
+        """根据现有表格修改所有曲线的值"""
+        for curve in self.curves:
+            for row in range(self.tableWidget.rowCount()):
+                try:
+                    x_value = float(self.tableWidget.item(row, 0).text())  # 获取 x 坐标
+                    y_value = float(self.tableWidget.item(row, 1).text())  # 获取 y 坐标
+                    if 0 <= x_value <= 100 and 0 <= y_value <= self.current_limit:
+                        curve["points"][row] = (x_value, y_value)  # 更新曲线的点
+                    else:
+                        QtWidgets.QMessageBox.warning(self, "输入错误", f"坐标值必须在 0 到 {self.current_limit} 之间")
+                        return
+                except ValueError:
+                    QtWidgets.QMessageBox.warning(self, "输入错误", "请输入有效的坐标")
+                    return
+                
+        QtWidgets.QMessageBox.information(self, "成功", "所有曲线的点已更新！")
                        
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)

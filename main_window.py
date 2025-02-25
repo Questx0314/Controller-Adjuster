@@ -19,6 +19,9 @@ class Ui_MainWindow(object):
 
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
+        self.editAllButton = QtWidgets.QPushButton(self.centralwidget)
+        self.editAllButton.setGeometry(QtCore.QRect(60,450,75,30))
+        self.editAllButton.setObjectName("pushButton")
         self.receiveDataButton = QtWidgets.QPushButton(self.centralwidget)
         self.receiveDataButton.setGeometry(QtCore.QRect(70, 200, 75, 30))
         self.receiveDataButton.setObjectName("pushButton")
@@ -44,7 +47,7 @@ class Ui_MainWindow(object):
         self.serial_comboBox.setGeometry(QtCore.QRect(70, 40, 150, 30))
         self.serial_comboBox.setObjectName("comboBox")
         self.curves_comboBox = QtWidgets.QComboBox(self.centralwidget)
-        self.curves_comboBox.setGeometry(QtCore.QRect(70, 160, 150, 30))
+        self.curves_comboBox.setGeometry(QtCore.QRect(70, 160, 80, 30))
         self.curves_comboBox.setObjectName("comboBox")
         self.graphicsView = QtWidgets.QGraphicsView(self.centralwidget)
         self.graphicsView.setGeometry(QtCore.QRect(360, 20, 570, 420))
@@ -61,12 +64,19 @@ class Ui_MainWindow(object):
         self.tableWidget.setColumnCount(0)
         self.tableWidget.setRowCount(0)
         self.instructionsLabel = QtWidgets.QLabel(self.centralwidget)
-        self.instructionsLabel.setGeometry(QtCore.QRect(70, 450, 100, 30))
+        self.instructionsLabel.setGeometry(QtCore.QRect(800, 450, 100, 30))
         self.instructionsLabel.setObjectName("instructionsLabel")
         self.instructionsLabel.setText("操作说明")
         self.instructionsLabel.setStyleSheet("color: blue; text-decoration: underline;")
         self.instructionsLabel.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.instructionsLabel.mousePressEvent = self.show_instructions
+        self.label3 = QtWidgets.QLabel(self.centralwidget)
+        self.label3.setGeometry(QtCore.QRect(200, 135, 91, 21))
+        self.label3.setObjectName("label")
+        self.currentTypeComboBox = QtWidgets.QComboBox(self.centralwidget)  # 添加电流类型选择框
+        self.currentTypeComboBox.setGeometry(QtCore.QRect(200, 160, 120, 30))  # 设置位置
+        self.currentTypeComboBox.addItems(["最大电流 1050mA", "最大电流 2000mA"])  # 添加选项
+        self.currentTypeComboBox.setCurrentIndex(0)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 960, 23))
@@ -87,10 +97,11 @@ class Ui_MainWindow(object):
         self.connectButton.setText(_translate("MainWindow", "连接"))
         self.label.setText(_translate("MainWindow", "选择串口"))
         self.label2.setText(_translate("MainWindow", "选择曲线"))
+        self.label3.setText(_translate("MainWindow", "选择规格"))
         self.disconnectButton.setText(_translate("MainWindow","断开"))
         self.sendAllDataButton.setText(_translate("MainWindow","全部写入"))
         self.receiveAllDataButton.setText(_translate("MainWindow","全部读取"))
-
+        self.editAllButton.setText(_translate("MainWindow","全部编辑"))
 
     # 获取图片的路径
     def resource_path(self,relative_path):
